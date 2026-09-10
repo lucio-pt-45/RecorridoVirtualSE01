@@ -75,6 +75,62 @@ if (isiPhone || isAndroidPhone) {
   var sceneListToggleElement = document.querySelector('#sceneListToggle');
   var autorotateToggleElement = document.querySelector('#autorotateToggle');
   var fullscreenToggleElement = document.querySelector('#fullscreenToggle');
+  var mapToggleElement = document.querySelector('#mapToggle');
+  var miniMapElement = document.querySelector('#miniMap');
+  var mapCloseElement = document.querySelector('#mapClose');
+  var mapMarkersElement = document.querySelector('#mapMarkers');
+
+  // Posiciones expresadas como porcentaje sobre la imagen numerada del mapa (x, y).
+  // Se corresponden con los números rojos entregados para cada panorama.
+  var mapPositions = {
+    '0-vista-aerea-general': [51.5, 53.1], // 21
+    '1-panorama-de-entrada': [14.4, 60.4], // 11
+    '2-entrada-principal': [25.9, 56.7], // 10
+    '3-explanacion-inferior-1': [41.3, 60.3], // 14
+    '4-explanacion-inferior-2': [50.9, 62.2], // 15
+    '5-explanacion-inferior-3': [59.8, 64.1], // 16
+    '6-via-de-acceso-6-a-explanacion-superior': [60.5, 31.2], // 4
+    '7-explanacion-superior-1': [28.4, 29.3], // 1
+    '8-explanacion-superior2': [42.4, 28.2], // 2
+    '9-explanacion-superior-3': [57.5, 25.0], // 3
+    '11-suplementaria-2': [63.2, 49.0], // 18
+    '12-suplementaria-3': [66.9, 33.5], // 19
+    '13-suplementaria-4': [55.1, 49.1], // 20
+    '14-via-de-acceso-1-lote-superior-e-inferior': [33.9, 55.5], // 9
+    '15-via-de-acceso-2': [40.7, 49.0], // 8
+    '16-via-de-acceso-3': [48.6, 41.7], // 7
+    '17-via-de-acceso-4': [53.6, 38.0], // 6
+    '18-via-de-acceso-5': [57.9, 33.7], // 5
+    '19-vista-panoramica-del-entorno-1': [22.5, 34.7], // 13
+    '20-vista-panoramica-del-entorno-2': [28.0, 42.9] // 12
+  };
+
+  // Desfase predeterminado entre el yaw de Marzipano y el norte de este plano.
+  var mapYawOffset = 132 * Math.PI / 180;
+  // Algunos panoramas fueron capturados con otra referencia angular. Estos
+  // valores específicos prevalecen sobre el desfase predeterminado.
+  var sceneMapYawOffsets = {
+    '1-panorama-de-entrada': 94 * Math.PI / 180,
+    '2-entrada-principal': 271 * Math.PI / 180,
+    '3-explanacion-inferior-1': 291 * Math.PI / 180,
+    '4-explanacion-inferior-2': 40 * Math.PI / 180,
+    '5-explanacion-inferior-3': 0 * Math.PI / 180,
+    '6-via-de-acceso-6-a-explanacion-superior': 213 * Math.PI / 180,
+    '7-explanacion-superior-1': 107 * Math.PI / 180,
+    '8-explanacion-superior2': 117 * Math.PI / 180,
+    '9-explanacion-superior-3': 209 * Math.PI / 180,
+    '11-suplementaria-2': 282 * Math.PI / 180,
+    '12-suplementaria-3': 257 * Math.PI / 180,
+    '13-suplementaria-4': 269 * Math.PI / 180,
+    '14-via-de-acceso-1-lote-superior-e-inferior': 293 * Math.PI / 180,
+    '15-via-de-acceso-2': 202 * Math.PI / 180,
+    '16-via-de-acceso-3': 79 * Math.PI / 180,
+    '17-via-de-acceso-4': 258 * Math.PI / 180,
+    '18-via-de-acceso-5': 243 * Math.PI / 180,
+    '19-vista-panoramica-del-entorno-1': 106 * Math.PI / 180,
+    '20-vista-panoramica-del-entorno-2': 61 * Math.PI / 180
+  };
+  var activeMapMarker = null;
 
   // Detect desktop or mobile mode.
   if (window.matchMedia) {
@@ -152,6 +208,10 @@ if (isiPhone || isAndroidPhone) {
       view: view
     };
   });
+
+  createMapMarkers();
+  mapToggleElement.addEventListener('click', function() { setMapVisibility(true); });
+  mapCloseElement.addEventListener('click', function() { setMapVisibility(false); });
 
   // Set up autorotate, if enabled.
   var autorotate = Marzipano.autorotate({
@@ -235,7 +295,90 @@ if (isiPhone || isAndroidPhone) {
     startAutorotate();
     updateSceneName(scene);
     updateSceneList(scene);
+    updateMapScene(scene);
   }
+
+  function createMapMarkers() {
+    scenes.forEach(function(scene) {
+      var position = mapPositions[scene.data.id];
+      if (!position) {
+        return;
+      }
+      var marker = document.createElement('button');
+      marker.type = 'button';
+      marker.className = 'map-marker';
+      marker.style.left = position[0] + '%';
+      marker.style.top = position[1] + '%';
+      marker.setAttribute('aria-label', 'Ir a ' + scene.data.name);
+      marker.title = scene.data.name;
+
+      var heading = document.createElement('span');
+      heading.className = 'map-heading';
+      marker.appendChild(heading);
+      marker.addEventListener('click', function(event) {
+        event.stopPropagation();
+        switchScene(scene);
+      });
+      stopTouchAndScrollEventPropagation(marker);
+      mapMarkersElement.appendChild(marker);
+      scene.mapMarker = marker;
+      scene.mapHeading = heading;
+    });
+  }
+
+  function updateMapScene(scene) {
+    if (activeMapMarker) {
+      activeMapMarker.classList.remove('active');
+    }
+    activeMapMarker = scene.mapMarker || null;
+    if (activeMapMarker) {
+      activeMapMarker.classList.add('active');
+      updateMapHeading(scene);
+    }
+  }
+
+  function updateMapHeading(scene) {
+    if (!scene.mapHeading) {
+      return;
+    }
+    var sceneOffset = sceneMapYawOffsets[scene.data.id];
+    if (typeof sceneOffset !== 'number') {
+      sceneOffset = mapYawOffset;
+    }
+    var degrees = (scene.view.yaw() + sceneOffset) * 180 / Math.PI;
+    scene.mapHeading.style.transform = 'rotate(' + degrees + 'deg)';
+    window.dispatchEvent(new CustomEvent('orientation-calibration-update', {
+      detail: {
+        sceneId: scene.data.id,
+        sceneName: scene.data.name,
+        yaw: scene.view.yaw(),
+        pitch: scene.view.pitch(),
+        mapHeading: degrees,
+        mapMarker: scene.mapMarker
+      }
+    }));
+  }
+
+  function setMapVisibility(visible) {
+    miniMapElement.hidden = !visible;
+    mapToggleElement.setAttribute('aria-expanded', String(visible));
+    if (visible) {
+      mapToggleElement.focus();
+    }
+  }
+
+  // El yaw del visor cambia continuamente al arrastrar, usar las flechas o autorrotar.
+  function refreshMapHeading() {
+    var currentScene = scenes.filter(function(scene) {
+      return scene.mapMarker && scene.mapMarker.classList.contains('active');
+    })[0];
+    if (currentScene) {
+      updateMapHeading(currentScene);
+    }
+    window.requestAnimationFrame(refreshMapHeading);
+  }
+
+  window.requestAnimationFrame(refreshMapHeading);
 
   function updateSceneName(scene) {
     sceneNameElement.innerHTML = sanitize(scene.data.name);

@@ -1,0 +1,40 @@
+/* Temporal: herramienta visual para calibrar la orientación del minimapa. */
+#orientationCalibration {
+  /* Temporalmente oculto; cambiar a display: block para volver a calibrar. */
+  display: none;
+  position: absolute;
+  right: 12px;
+  top: 52px;
+  z-index: 20;
+  width: 206px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 5px;
+  background: rgba(22, 34, 40, 0.92);
+  color: #fff;
+  font: 12px/1.35 "Helvetica Neue", Helvetica, Arial, sans-serif;
+  pointer-events: none;
+}
+
+#orientationCalibration strong {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 13px;
+}
+
+#orientationCalibration .orientation-values {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 3px 10px;
+}
+
+#orientationCalibration .orientation-values span:nth-child(odd) {
+  color: #b9d7e7;
+}
+
+@media (max-width: 500px), (max-height: 500px) {
+  #orientationCalibration {
+    right: 10px;
+    top: 60px;
+  }
+}

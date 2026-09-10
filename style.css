@@ -42,6 +42,143 @@ a, a:hover, a:active, a:visited {
   overflow: hidden;
 }
 
+/* Minimapa */
+#mapToggle {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 20;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+  padding: 9px 13px;
+  color: #fff;
+  background: rgba(26, 39, 46, 0.9);
+  font: 600 14px/1 "Helvetica Neue", Helvetica, Arial, sans-serif;
+  cursor: pointer;
+}
+
+#mapToggle:hover,
+#mapToggle:focus {
+  background: rgba(56, 94, 78, 0.96);
+}
+
+#miniMap {
+  position: absolute;
+  right: 12px;
+  bottom: 58px;
+  z-index: 20;
+  width: min(340px, calc(100vw - 24px));
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  background: #17232a;
+}
+
+#miniMap[hidden] {
+  display: none;
+}
+
+.mini-map-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 38px;
+  padding-left: 11px;
+  color: #fff;
+  background: rgba(26, 39, 46, 0.96);
+  font-size: 13px;
+}
+
+#mapClose {
+  width: 38px;
+  height: 38px;
+  border: 0;
+  color: #fff;
+  background: transparent;
+  font: 28px/1 Arial, sans-serif;
+  cursor: pointer;
+}
+
+#mapCanvas {
+  position: relative;
+  width: 100%;
+  line-height: 0;
+  background: #33413b;
+}
+
+#mapCanvas > img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+#mapMarkers {
+  position: absolute;
+  inset: 0;
+}
+
+.map-marker {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  outline: 0;
+  background: #265f87;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+  cursor: pointer;
+}
+
+.map-marker:hover,
+.map-marker:focus {
+  transform: scale(1.2);
+  background: #f2c14e;
+}
+
+.map-marker.active {
+  z-index: 2;
+  border-color: #fff;
+  background: #e56a2f;
+}
+
+.map-heading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  margin: -28px 0 0 -12px;
+  transform-origin: 12px 28px;
+  border-right: 12px solid transparent;
+  border-bottom: 31px solid rgba(229, 106, 47, 0.75);
+  border-left: 12px solid transparent;
+  pointer-events: none;
+}
+
+.map-marker.active .map-heading {
+  display: block;
+}
+
+.map-marker:not(.active) .map-heading {
+  display: none;
+}
+
+@media (max-width: 500px), (max-height: 500px) {
+  #mapToggle {
+    right: 10px;
+    bottom: 10px;
+  }
+
+  #miniMap {
+    right: 10px;
+    bottom: 54px;
+    width: min(300px, calc(100vw - 20px));
+  }
+}
+
 #titleBar {
   position: absolute;
   top: 0;

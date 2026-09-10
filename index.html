@@ -7,6 +7,7 @@
 <style> @-ms-viewport { width: device-width; } </style>
 <link rel="stylesheet" href="vendor/reset.min.css">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="orientation-calibration.css?v=3">
 </head>
 <body class="multiple-scenes ">
 
@@ -121,6 +122,21 @@
   <img class="icon on" src="img/collapse.png">
 </a>
 
+<button type="button" id="mapToggle" aria-controls="miniMap" aria-expanded="true">
+  Mapa
+</button>
+
+<aside id="miniMap" aria-label="Mapa interactivo del recorrido">
+  <div class="mini-map-header">
+    <strong>Ubicación y orientación</strong>
+    <button type="button" id="mapClose" aria-label="Cerrar mapa">×</button>
+  </div>
+  <div id="mapCanvas">
+    <img src="img/mapa-terreno-numerado.jpg" alt="Vista aérea del terreno con la numeración de cámaras">
+    <div id="mapMarkers" aria-label="Cámaras del recorrido"></div>
+  </div>
+</aside>
+
 <a href="javascript:void(0)" id="viewUp" class="viewControlButton viewControlButton-1">
   <img class="icon" src="img/up.png">
 </a>
@@ -146,6 +162,7 @@
 
 <script src="data.js"></script>
 <script src="index.js"></script>
+<script src="orientation-calibration.js?v=3"></script>
 
 </body>
 </html>
